@@ -57,10 +57,8 @@ function Generate-ExtractedScript {
     # ---------------------------------------------------------------------------------------
     $ScriptTemplate = @'
 # --- Extracted.Ps1 ---
-# סקריפט שחזור אוטומטי
-# שוחזר בתאריך: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+ $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 
-# הגדרת תיקיית הפלט (נתיב קשיח שהוגדר ב-GUI)
 $OutputFolder = "$ExtractionPath"
 Write-Host "תיקיית הפלט שהוגדרה: $OutputFolder"
 
@@ -80,7 +78,6 @@ $FileDataSet = @(
 $FileBytesDataText
 )
 
-# לולאה על כל הקבצים לשחזור
 foreach ($FileEntry in $FileDataSet) {
     
     $OutputFile = Join-Path -Path $OutputFolder -ChildPath $FileEntry.FileName
@@ -108,7 +105,6 @@ $AdditionalCode
 # --------------------------------------------------
 '@
 
-    # מילוי התבנית והכתיבה לסקריפט הפלט
     $ScriptContent = $ScriptTemplate -replace '\$ExtractionPath', $ExtractionPath -replace '\$FileBytesDataText', "`n$($FileBytesDataText -join "`n")" -replace '\$AdditionalCode', $AdditionalCode
 
     $OutputFile = Join-Path -Path (Get-Location) -ChildPath "Extracted.Ps1"
@@ -118,12 +114,6 @@ $AdditionalCode
 
 }
 
-
-# ---------------------------------------------------------------------------------------
-## 2. בניית ה-GUI (הטופס הראשי)
-# ---------------------------------------------------------------------------------------
-
-# --- הגדרת הטופס הראשי ---
 $Form = New-Object System.Windows.Forms.Form
 $Form.Text = $FormTitle
 $Form.Size = New-Object System.Drawing.Size(650, 600)
@@ -133,7 +123,6 @@ $Form.TopMost = $true
 $Form.MaximizeBox = $false
 $Form.Font = New-Object System.Drawing.Font("Arial", 10)
 
-# 1. קבצים לבחירה
 $LabelFiles = New-Object System.Windows.Forms.Label
 $LabelFiles.Text = "קבצים להטמעה:"
 $LabelFiles.Location = New-Object System.Drawing.Point(10, 15)
@@ -153,7 +142,6 @@ $ButtonSelectFiles.Location = New-Object System.Drawing.Point(470, 38)
 $ButtonSelectFiles.Size = New-Object System.Drawing.Size(150, 30)
 $Form.Controls.Add($ButtonSelectFiles)
 
-# 2. תיקיית פלט
 $LabelFolder = New-Object System.Windows.Forms.Label
 $LabelFolder.Text = "תיקיית חילוץ יעד (בתוך הסקריפט):"
 $LabelFolder.Location = New-Object System.Drawing.Point(10, 85)
@@ -172,7 +160,6 @@ $ButtonSelectFolder.Location = New-Object System.Drawing.Point(470, 108)
 $ButtonSelectFolder.Size = New-Object System.Drawing.Size(150, 30)
 $Form.Controls.Add($ButtonSelectFolder)
 
-# 3. פאנל קוד נוסף
 $LabelCode = New-Object System.Windows.Forms.Label
 $LabelCode.Text = "קוד PowerShell נוסף לביצוע בסוף החילוץ:"
 $LabelCode.Location = New-Object System.Drawing.Point(10, 160)
@@ -188,7 +175,6 @@ $TextBoxCode.Font = New-Object System.Drawing.Font("Consolas", 13)
 $TextBoxCode.Text = "# הוסף קוד שירוץ לאחר שחזור כל הקבצים, לדוגמה:\n# Invoke-Item (Join-Path -Path \$OutputFolder -ChildPath 'MyApp.exe')"
 $Form.Controls.Add($TextBoxCode)
 
-# 4. כפתור יצירת סקריפט (מוקטן)
 $ButtonGenerate = New-Object System.Windows.Forms.Button
 $ButtonGenerate.Text = "צור סקריפט Extracted.Ps1"
 $ButtonGenerate.Location = New-Object System.Drawing.Point(10, 500)
@@ -196,8 +182,6 @@ $ButtonGenerate.Size = New-Object System.Drawing.Size(450, 50)
 $ButtonGenerate.Font = New-Object System.Drawing.Font("Arial", 12, [System.Drawing.FontStyle]::Bold)
 $Form.Controls.Add($ButtonGenerate)
 
-
-# 5. כפתור יציאה חדש! 🚪
 $ButtonExit = New-Object System.Windows.Forms.Button
 $ButtonExit.Text = "יציאה"
 $ButtonExit.Location = New-Object System.Drawing.Point(470, 500)
@@ -206,12 +190,6 @@ $ButtonExit.Font = New-Object System.Drawing.Font("Arial", 12, [System.Drawing.F
 $ButtonExit.BackColor = [System.Drawing.Color]::LightCoral
 $Form.Controls.Add($ButtonExit)
 
-
-# ---------------------------------------------------------------------------------------
-## 3. הגדרת לוגיקת ה-Event Handlers
-# ---------------------------------------------------------------------------------------
-
-# לוגיקה לבחירת קבצים
 $ButtonSelectFiles.Add_Click({
     $OpenDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenDialog.Multiselect = $true
@@ -227,7 +205,6 @@ $ButtonSelectFiles.Add_Click({
     }
 })
 
-# לוגיקה לבחירת תיקיית פלט (היעד שיוטמע בסקריפט)
 $ButtonSelectFolder.Add_Click({
     $FolderDialog = New-Object System.Windows.Forms.FolderBrowserDialog
     $FolderDialog.Description = "בחר נתיב קשיח להטמעה בסקריפט החילוץ"
@@ -237,15 +214,12 @@ $ButtonSelectFolder.Add_Click({
     }
 })
 
-# לוגיקה ליצירת הסקריפט
 $ButtonGenerate.Add_Click({
     Generate-ExtractedScript -FilesToEmbed $global:SourceFiles -ExtractionPath $TextBoxFolder.Text -AdditionalCode $TextBoxCode.Text
 })
 
-# לוגיקה ליציאה מהטופס
 $ButtonExit.Add_Click({
     $Form.Close()
 })
 
-# הצגת הטופס
 $Form.ShowDialog() | Out-Null
